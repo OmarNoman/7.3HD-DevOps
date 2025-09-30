@@ -5,8 +5,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Build stage - placeholder'
-                bat 'docker version'
-                bat 'docker info'
+                echo 'docker version'
+                echo 'docker info'
             }
         }
 
@@ -47,4 +47,5 @@ pipeline {
         }
     }
 }
+
 
