@@ -43,9 +43,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploy stage'
-                // Stop any running container
-                bat 'docker stop myapp-test || echo No running container'
-
                 // Remove any existing container
                 bat 'docker rm -f myapp-test || echo No container to remove'
                 
@@ -70,6 +67,7 @@ pipeline {
         }
     }
 }
+
 
 
 
