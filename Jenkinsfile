@@ -53,9 +53,6 @@ pipeline {
                 // Start the app
                 bat 'docker-compose -f docker-compose.yml up -d'
 
-                // Wait a few seconds for healthcheck
-                bat 'timeout /t 10'
-
                 // Check container health
                 script {
                     def status = bat(script: 'docker inspect --format="{{.State.Health.Status}}" myapp-test', returnStdout: true).trim()
@@ -85,6 +82,7 @@ pipeline {
         }
     }
 }
+
 
 
 
