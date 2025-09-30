@@ -22,7 +22,7 @@ pipeline {
                 script {
                     def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                        withSonarQubeEnv('SonarQube-local') {
+                        withSonarQubeEnv('SonarQube-Local') {
                             bat "${scannerHome}\\bin\\sonar-scanner.bat " +
                                 "-Dsonar.projectKey=myapp " +
                                 "-Dsonar.sources=. " +
@@ -58,6 +58,7 @@ pipeline {
         }
     }
 }
+
 
 
 
