@@ -1,10 +1,11 @@
-# Use the official Python image
 FROM python:3.11-slim
 
-# Set working directory inside container
 WORKDIR /app
 
-# Copy the rest of the code
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+
 COPY . .
 
 # Run the program
