@@ -43,14 +43,32 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploy stage'
-                bat 'docker stop myapp-test || echo No running container to stop'
-                bat 'docker rm myapp-test || echo No container to remove'
+                // Stop and remove any previous container
+                bat 'docker-compose -f docker-compose.yml down || echo No containers to stop'
 
-                bat 'docker run -d --name myapp-test -p 5000:5000 myapp:latest'
-                bat 'docker ps -f name=myapp-test'
+                // Pull latest image (optional if using CI-built image)
+                bat 'docker pull myapp:latest || echo No image to pull'
 
+                // Start the app
+                bat 'docker-compose -f docker-compose.yml up -d'
+
+                // Wait a few seconds for healthcheck
+                bat 'timeout /t 10'
+
+                // Check container health
+                script {
+                    def status = bat(script: 'docker inspect --format="{{.State.Health.Status}}" myapp-test', returnStdout: true).trim()
+                    if (status != "healthy") {
+                        echo "Deployment failed, rolling back..."
+                        // Rollback: start previous container (optional: use previous tag or backup)
+                        bat 'docker-compose -f docker-compose.yml down'
+                        error("Deployment failed: container unhealthy")
+                    } else {
+                        echo "Deployment successful, container is healthy."
+            }
                 
             }
+        }
         }
 
         stage('Release') {
@@ -66,6 +84,7 @@ pipeline {
         }
     }
 }
+
 
 
 
