@@ -21,7 +21,7 @@ pipeline {
                 echo 'Code Quality stage'
                 def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                 withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('Local SonarQube') {
+                    withSonarQubeEnv('SonarQube-local') {
                         bat "${scannerHome}\\bin\\sonar-scanner.bat " +
                             "-Dsonar.projectKey=myapp " +
                             "-Dsonar.sources=. " +
@@ -56,6 +56,7 @@ pipeline {
         }
     }
 }
+
 
 
 
