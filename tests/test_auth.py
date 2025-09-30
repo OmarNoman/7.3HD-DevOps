@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
 import sqlite3
 import pytest
 from python_login import register, login, create_item, read_items, update_item, delete_item
