@@ -42,7 +42,14 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploy stage - placeholder'
+                echo 'Deploy stage'
+                bat 'docker stop myapp-test || echo No running container to stop'
+                bat 'docker rm myapp-test || echo No container to remove'
+
+                bat 'docker run -d --name myapp-test -p 5000:5000 myapp:latest'
+                bat 'docker ps -f name=myapp-test'
+
+                
             }
         }
 
@@ -59,6 +66,7 @@ pipeline {
         }
     }
 }
+
 
 
 
