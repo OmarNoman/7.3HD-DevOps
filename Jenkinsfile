@@ -35,7 +35,8 @@ pipeline {
 
         stage('Security') {
             steps {
-                echo 'Security stage - placeholder'
+                echo 'Security stage '
+                bat 'docker run --rm -v %CD%:/app myapp:latest bandit -r /app -lll'
             }
         }
 
@@ -58,6 +59,7 @@ pipeline {
         }
     }
 }
+
 
 
 
