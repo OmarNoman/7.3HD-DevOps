@@ -1,6 +1,6 @@
 import sqlite3
 import pytest
-from main import register, login, create_item, read_items, update_item, delete_item
+from python_login.py import register, login, create_item, read_items, update_item, delete_item
 
 # Use an in-memory SQLite database for testing
 @pytest.fixture
@@ -27,9 +27,9 @@ def db_connection(monkeypatch):
     """)
     conn.commit()
 
-    # Patch the original connection in main.py
-    monkeypatch.setattr("main.conn", conn)
-    monkeypatch.setattr("main.cursor", cursor)
+    # Patch the original connection in
+    monkeypatch.setattr("python_login.conn", conn)
+    monkeypatch.setattr("python_login.cursor", cursor)
 
     yield cursor, conn
 
