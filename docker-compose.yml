@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  myapp:
+    image: myapp:latest
+    container_name: myapp-test
+    environment:
+      - ENV=staging
+      - USERNAME=test
+      - PASSWORD=1234
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
