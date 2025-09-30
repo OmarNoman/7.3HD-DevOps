@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import getpass
 
@@ -31,8 +32,11 @@ conn.commit()
 # Authentication functions
 # -------------------------------
 def register():
-    username = input("Choose your username: ")
-    password = getpass.getpass("Choose a password: ")
+    username = os.environ.get("USERNAME") or input("Choose your username: ")
+    password = os.environ.get("PASSWORD") or getpass.getpass("Choose a password: ")
+
+    # username = input("Choose your username: ")
+    # password = getpass.getpass("Choose a password: ")
 
     try:
         cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
