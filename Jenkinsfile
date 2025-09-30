@@ -12,7 +12,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm python-crud-app:latest pytest -v'
+                bat 'docker run --rm myapp:latest pytest -v'
             }
         }
 
@@ -47,6 +47,7 @@ pipeline {
         }
     }
 }
+
 
 
 
