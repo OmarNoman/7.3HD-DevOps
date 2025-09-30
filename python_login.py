@@ -46,8 +46,8 @@ def register():
         print("⚠️ Username already exists. Try again!")
 
 def login():
-    username = input("Username: ")
-    password = getpass.getpass("Password: ")
+    username = os.environ.get("USERNAME") or input("Username: ")
+    password = os.environ.get("PASSWORD") or getpass.getpass("Password: ")
 
     cursor.execute("SELECT id FROM users WHERE username=? AND password=?", (username, password))
     result = cursor.fetchone()
@@ -96,6 +96,12 @@ def delete_item(user_id):
 # Main app loop
 # -------------------------------
 def main():
+    if os.environ.get("CI") == "true":
+        # Non-interactive mode for automated deployment
+        register()
+        print("✅ App started in CI mode. Ready for testing or deployment.")
+        return
+        
     print("=== Simple Login and  CRUD App ===")
     while True:
         choice = input("\n1. Register\n2. Login\n3. Exit\nChoose: ")
