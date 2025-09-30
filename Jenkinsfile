@@ -4,14 +4,15 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Build stage - placeholder'
+                echo 'Build stage'
                 bat 'docker build -t myapp:latest .'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Test stage - placeholder'
+                echo 'Test stage'
+                bat 'docker run --rm python-crud-app:latest pytest -v'
             }
         }
 
@@ -46,6 +47,7 @@ pipeline {
         }
     }
 }
+
 
 
 
