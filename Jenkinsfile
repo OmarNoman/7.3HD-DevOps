@@ -18,7 +18,8 @@ pipeline {
 
         stage('Code Quality') {
             steps {
-                echo 'Code Quality stage - placeholder'
+                echo 'Code Quality stage'
+                bat 'sonar-scanner -Dsonar.projectKey=myapp -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=admin'
             }
         }
 
@@ -47,6 +48,7 @@ pipeline {
         }
     }
 }
+
 
 
 
