@@ -46,9 +46,6 @@ pipeline {
                 // Stop and remove any previous container
                 bat 'docker-compose -f docker-compose.yml down || echo No containers to stop'
 
-                // Pull latest image (optional if using CI-built image)
-                bat 'docker pull myapp:latest || echo No image to pull'
-
                 // Start the app
                 bat 'docker-compose -f docker-compose.yml up -d'
 
@@ -84,6 +81,7 @@ pipeline {
         }
     }
 }
+
 
 
 
