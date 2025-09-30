@@ -3,7 +3,7 @@ services:
     image: myapp:latest
     container_name: myapp-test
     environment:
-      - ENV=staging
+      - CI=true
       - USERNAME=omar
       - PASSWORD=123
     ports:
