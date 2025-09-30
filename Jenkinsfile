@@ -19,10 +19,16 @@ pipeline {
         stage('Code Quality') {
             steps {
                 echo 'Code Quality stage'
-                withSonarQubeEnv('SonarQube-Local') {
-                bat 'SonarScanner -Dsonar.projectKey=myapp -Dsonar.sources=.'
+                def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('Local SonarQube') {
+                        bat "${scannerHome}\\bin\\sonar-scanner.bat " +
+                            "-Dsonar.projectKey=myapp " +
+                            "-Dsonar.sources=. " +
+                            "-Dsonar.login=%SONAR_TOKEN%"
                 }
             }
+        }
         }
 
         stage('Security') {
@@ -50,6 +56,7 @@ pipeline {
         }
     }
 }
+
 
 
 
