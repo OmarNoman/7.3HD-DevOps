@@ -19,13 +19,15 @@ pipeline {
         stage('Code Quality') {
             steps {
                 echo 'Code Quality stage'
-                def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube-local') {
-                        bat "${scannerHome}\\bin\\sonar-scanner.bat " +
-                            "-Dsonar.projectKey=myapp " +
-                            "-Dsonar.sources=. " +
-                            "-Dsonar.login=%SONAR_TOKEN%"
+                script {
+                    def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
+                        withSonarQubeEnv('SonarQube-local') {
+                            bat "${scannerHome}\\bin\\sonar-scanner.bat " +
+                                "-Dsonar.projectKey=myapp " +
+                                "-Dsonar.sources=. " +
+                                "-Dsonar.login=%SONAR_TOKEN%"
+                    }
                 }
             }
         }
@@ -56,6 +58,7 @@ pipeline {
         }
     }
 }
+
 
 
 
