@@ -5,7 +5,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Build stage - placeholder'
-                echo 'docker build -t myapp:latest .'
+                bat 'docker build -t myapp:latest .'
             }
         }
 
@@ -46,6 +46,7 @@ pipeline {
         }
     }
 }
+
 
 
 
