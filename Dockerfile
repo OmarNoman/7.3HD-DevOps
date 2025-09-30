@@ -10,7 +10,7 @@ RUN pip install bandit
 
 # Default env vars for CI/CD
 ENV CI=true
-ENV USERNAME=omar
+ENV USERNAME=test
 ENV PASSWORD=123
 
 COPY . .
