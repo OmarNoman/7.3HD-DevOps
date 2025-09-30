@@ -19,7 +19,8 @@ pipeline {
         stage('Code Quality') {
             steps {
                 echo 'Code Quality stage'
-                bat 'sonar-scanner -Dsonar.projectKey=myapp -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=admin'
+                withSonarQubeEnv('Local SonarQube') {
+                bat 'sonar-scanner -Dsonar.projectKey=myapp -Dsonar.sources=.'
             }
         }
 
@@ -48,6 +49,7 @@ pipeline {
         }
     }
 }
+
 
 
 
