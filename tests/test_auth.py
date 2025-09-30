@@ -1,6 +1,6 @@
 import sqlite3
 import pytest
-from python_login.py import register, login, create_item, read_items, update_item, delete_item
+from python_login import register, login, create_item, read_items, update_item, delete_item
 
 # Use an in-memory SQLite database for testing
 @pytest.fixture
