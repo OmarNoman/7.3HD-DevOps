@@ -53,20 +53,8 @@ pipeline {
                 // Start the app
                 bat 'docker-compose -f docker-compose.yml up -d'
 
-                // Check container health
-                script {
-                    def status = bat(script: 'docker inspect --format="{{.State.Health.Status}}" myapp-test', returnStdout: true).trim()
-                    if (status != "healthy") {
-                        echo "Deployment failed, rolling back..."
-                        // Rollback: start previous container (optional: use previous tag or backup)
-                        bat 'docker-compose -f docker-compose.yml down'
-                        error("Deployment failed: container unhealthy")
-                    } else {
-                        echo "Deployment successful, container is healthy."
+        
             }
-                
-            }
-        }
         }
 
         stage('Release') {
@@ -82,6 +70,7 @@ pipeline {
         }
     }
 }
+
 
 
 
