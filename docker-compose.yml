@@ -4,8 +4,8 @@ services:
     container_name: myapp-test
     environment:
       - ENV=staging
-      - USERNAME=test
-      - PASSWORD=1234
+      - USERNAME=omar
+      - PASSWORD=123
     ports:
       - "5000:5000"
     healthcheck:
