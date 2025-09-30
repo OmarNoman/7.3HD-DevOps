@@ -1,4 +1,4 @@
-\import sqlite3
+import sqlite3
 import pytest
 from main import register, login, create_item, read_items, update_item, delete_item
 
