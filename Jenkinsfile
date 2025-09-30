@@ -29,7 +29,7 @@ pipeline {
                 }
             }
         }
-        }
+    }
 
         stage('Security') {
             steps {
@@ -56,6 +56,7 @@ pipeline {
         }
     }
 }
+
 
 
 
