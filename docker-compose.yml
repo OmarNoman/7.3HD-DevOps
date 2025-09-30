@@ -4,7 +4,7 @@ services:
     container_name: myapp-test
     environment:
       - CI=true
-      - USERNAME=omar
+      - USERNAME=test
       - PASSWORD=123
     ports:
       - "5000:5000"
