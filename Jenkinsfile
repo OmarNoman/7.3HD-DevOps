@@ -56,7 +56,19 @@ pipeline {
 
         stage('Release') {
             steps {
-                echo 'Release stage - placeholder'
+                echo 'Release stage'
+                // stop and remove the old production container
+                bat 'docker stop myapp-prod || echo No container running'
+                bat 'docker rm -f myapp-prod || echo No container to remove'
+
+                //Build the new image
+                bat 'docker build -t myapp:latest .'
+
+                //run the container
+                bat 'docker run -d --name myapp-prod -p 5001:500 myapp:latest'
+
+                echo 'Production deployment complete'
+                
             }
         }
 
@@ -67,6 +79,7 @@ pipeline {
         }
     }
 }
+
 
 
 
