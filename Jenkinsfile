@@ -65,7 +65,7 @@ pipeline {
                 bat 'docker tag myapp:prod omarnoman/myapp:latest'
 
                 // Login to Docker Hub using Jenkins credentials
-                withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKER_TOKEN')]) {
+                withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_TOKEN')]) {
                     bat 'docker login -u omarnoman -p %DOCKER_TOKEN%'
                 }
 
@@ -84,6 +84,7 @@ pipeline {
         }
     }
 }
+
 
 
 
