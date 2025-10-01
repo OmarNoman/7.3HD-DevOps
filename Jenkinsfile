@@ -80,6 +80,9 @@ pipeline {
         stage('Monitoring') {
             steps {
                 echo 'Monitoring stage'
+                bat 'docker stop dd-agent || echo No existing Datadog container running'
+                bat 'docker rm -f dd-agent || echo No existing Datadog container to remove'
+                
                 bat '''
                 docker run -d --name dd-agent \
                 -e DD_API_KEY=datadog_api \
@@ -97,6 +100,7 @@ pipeline {
         }
     }
 }
+
 
 
 
