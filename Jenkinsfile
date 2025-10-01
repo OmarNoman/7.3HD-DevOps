@@ -82,24 +82,28 @@ pipeline {
                 echo 'Monitoring stage'
                 bat 'docker stop dd-agent || echo No existing Datadog container running'
                 bat 'docker rm -f dd-agent || echo No existing Datadog container to remove'
-                
-                bat '''
-                docker run -d --name dd-agent \
-                -e DD_API_KEY=datadog_api \
-                -e DD_SITE="ap2.datadoghq.com" \
-                -e DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true \
-                -v /var/run/docker.sock:/var/run/docker.sock:ro \
-                -v /proc/:/host/proc/:ro \
-                -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
-                -v /var/lib/docker/containers:/var/lib/docker/containers:ro \
-                gcr.io/datadoghq/agent:7
-                '''
+
+                withCredentials([string(credentialsId: 'datadog_api', variable: 'API_KEY')]) {
+                    
+                    bat '''
+                    docker run -d --name dd-agent \
+                        -e DD_API_KEY=%API_KEY% \
+                        -e DD_SITE="ap2.datadoghq.com" \
+                        -e DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true \
+                        -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                        -v /proc/:/host/proc/:ro \
+                        -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
+                        -v /var/lib/docker/containers:/var/lib/docker/containers:ro \
+                        gcr.io/datadoghq/agent:7
+                    '''
+                }
                 echo "Datadog has started monitoring"
 
             }
         }
     }
 }
+
 
 
 
