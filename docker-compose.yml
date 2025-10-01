@@ -1,6 +1,6 @@
 services:
   myapp:
-    image: myapp:latest
+    image: omarnoman/myapp:latest
     container_name: myapp-test
     environment:
       - CI=true
