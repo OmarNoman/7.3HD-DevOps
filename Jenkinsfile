@@ -56,18 +56,25 @@ pipeline {
 
         stage('Release') {
             steps {
-                echo 'Release stage'
-                // stop and remove the old production container
-                bat 'docker stop myapp-prod || echo No container running'
-                bat 'docker rm -f myapp-prod || echo No container to remove'
+               echo "Building and pushing image to Docker Hub..."
 
-                //Build the new image
-                bat 'docker build -t myapp:latest .'
+                // Build production image
+                bat 'docker build -t myapp:prod .'
 
-                //run the container
-                bat 'docker run -d --name myapp-prod -p 5001:500 myapp:latest'
+                // Tag the image with your Docker Hub repo
+                bat 'docker tag myapp:prod dockerhub_username/myapp:latest'
 
-                echo 'Production deployment complete'
+                // Login to Docker Hub using Jenkins credentials
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
+                                              usernameVariable: 'DOCKER_USER', 
+                                              passwordVariable: 'DOCKER_PASS')]) {
+                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                }
+
+                // Push image to Docker Hub
+                bat 'docker push dockerhub_username/myapp:latest'
+
+                echo "Image successfully pushed to Docker Hub!"
                 
             }
         }
@@ -79,6 +86,7 @@ pipeline {
         }
     }
 }
+
 
 
 
