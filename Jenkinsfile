@@ -82,7 +82,7 @@ pipeline {
                 echo 'Monitoring stage'
                 bat '''
                 docker run -d --name dd-agent \
-                -e DD_API_KEY=f97a26096b946be94a3fb6338a259681 \
+                -e DD_API_KEY=datadog_api \
                 -e DD_SITE="ap2.datadoghq.com" \
                 -e DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true \
                 -v /var/run/docker.sock:/var/run/docker.sock:ro \
@@ -97,6 +97,7 @@ pipeline {
         }
     }
 }
+
 
 
 
