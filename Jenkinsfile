@@ -5,14 +5,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Build stage'
-                bat 'docker build -t myapp:latest .'
+                bat 'docker build -t python_login:latest .'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm myapp:latest pytest -v'
+                bat 'docker run --rm python_login:latest pytest -v'
             }
         }
 
@@ -24,7 +24,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
                         withSonarQubeEnv('SonarQube-Local') {
                             bat "${scannerHome}\\bin\\sonar-scanner.bat " +
-                                "-Dsonar.projectKey=myapp " +
+                                "-Dsonar.projectKey=python_login " +
                                 "-Dsonar.sources=. " +
                                 "-Dsonar.login=%SONAR_TOKEN%"
                     }
@@ -36,7 +36,7 @@ pipeline {
         stage('Security') {
             steps {
                 echo 'Security stage '
-                bat 'docker run --rm -v %CD%:/app myapp:latest bandit -r /app -lll -x /app/venv'
+                bat 'docker run --rm -v %CD%:/app python_login:latest bandit -r /app -lll -x /app/venv'
             }
         }
 
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 echo 'Deploy stage'
                 // Remove any existing container
-                bat 'docker rm -f myapp-test || echo No container to remove'
+                bat 'docker rm -f python_login-test || echo No container to remove'
                 
 
                 // Start the app
@@ -59,10 +59,10 @@ pipeline {
                echo "Building and pushing image to Docker Hub..."
 
                 // Build production image
-                bat 'docker build -t myapp:prod .'
+                bat 'docker build -t python_login:prod .'
 
                 // Tag the image with your Docker Hub repo
-                bat 'docker tag myapp:prod omarnoman/myapp:latest'
+                bat 'docker tag python_login:prod omarnoman/python_login:latest'
 
                 // Login to Docker Hub using Jenkins credentials
                 withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_TOKEN')]) {
@@ -70,7 +70,7 @@ pipeline {
                 }
 
                 // Push image to Docker Hub
-                bat 'docker push omarnoman/myapp:latest'
+                bat 'docker push omarnoman/python_login:latest'
 
                 echo "Image successfully pushed to Docker Hub!"
                 
@@ -103,6 +103,7 @@ pipeline {
         }
     }
 }
+
 
 
 
