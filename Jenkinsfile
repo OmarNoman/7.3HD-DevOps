@@ -62,7 +62,7 @@ pipeline {
                 bat 'docker build -t myapp:prod .'
 
                 // Tag the image with your Docker Hub repo
-                bat 'docker tag myapp:prod dockerhub_username/myapp:latest'
+                bat 'docker tag myapp:prod omarnoman/myapp:latest'
 
                 // Login to Docker Hub using Jenkins credentials
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', 
@@ -72,7 +72,7 @@ pipeline {
                 }
 
                 // Push image to Docker Hub
-                bat 'docker push dockerhub_username/myapp:latest'
+                bat 'docker push omarnoman/myapp:latest'
 
                 echo "Image successfully pushed to Docker Hub!"
                 
@@ -86,6 +86,7 @@ pipeline {
         }
     }
 }
+
 
 
 
