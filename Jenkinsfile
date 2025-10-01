@@ -45,7 +45,7 @@ pipeline {
                 echo 'Deploy stage'
 
                 bat"""
-                docker build -t omarnoman/python_login:latest
+                docker build -t omarnoman/python_login:latest .
                 """
 
                 // Remove any existing container
@@ -119,6 +119,7 @@ pipeline {
         }
     }
 }
+
 
 
 
