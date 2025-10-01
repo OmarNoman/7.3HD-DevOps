@@ -66,7 +66,7 @@ pipeline {
 
                 // Login to Docker Hub using Jenkins credentials
                 withCredentials([string(credentialsId: 'dockerhub-pat', variable: 'DOCKER_TOKEN')]) {
-                    bat 'docker login -u dockerhub_username -p %DOCKER_TOKEN%'
+                    bat 'docker login -u omarnoman -p %DOCKER_TOKEN%'
                 }
 
                 // Push image to Docker Hub
@@ -84,6 +84,7 @@ pipeline {
         }
     }
 }
+
 
 
 
