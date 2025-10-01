@@ -6,7 +6,6 @@ COPY . /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install bandit
 
 # Default env vars for CI/CD
 ENV CI=true
