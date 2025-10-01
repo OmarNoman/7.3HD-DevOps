@@ -43,14 +43,31 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploy stage'
+
+                bat"""
+                docker build -t omarnoman/python_login:latest
+                """
+
                 // Remove any existing container
-                bat 'docker rm -f python_login-test || echo No container to remove'
+                bat """
+                docker stop myapp-test || echo "No running test container"
+                docker rm myapp-test || echo "No container to remove"
+                """
                 
+                // Run the container
+                bat """
+                docker run -d --name myapp-test ^
+                    -e CI=true ^
+                    -e USERNAME=test ^
+                    -e PASSWORD=123 ^
+                    -p 5000:5000 ^
+                omarnoman/myapp:latest
+                """
 
-                // Start the app
-                bat 'docker-compose -f docker-compose.yml up -d'
-
-        
+                bat"""
+                timeout /t 5
+                docker ps -a
+                """
             }
         }
 
@@ -102,6 +119,7 @@ pipeline {
         }
     }
 }
+
 
 
 
