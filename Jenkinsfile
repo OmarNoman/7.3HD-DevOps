@@ -55,8 +55,7 @@ pipeline {
                 """
 
                 // Remove any existing container
-                bat 'docker stop python_login_webapp-test || echo No existing python_login_webapp container running'
-                bat 'docker rm -f python_login_webapp-test || echo No existing python_login_webapp container to remove'
+                
                 
                 
                 // Run the container
@@ -132,6 +131,7 @@ pipeline {
         }
     }
 }
+
 
 
 
