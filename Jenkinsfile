@@ -92,10 +92,7 @@ pipeline {
                 echo "Image pushed to Docker Hub"
 
                 // Run a new production container
-                bat """
-                docker stop python_login_webapp-prod || echo "No running production container"
-                docker rm python_login_webapp-prod || echo "No old container to remove"
-                """
+                
                 
                 bat """
                 docker run -d --name python_login_webapp-prod -e ENV=production -p 80:5000 omarnoman/python_login_webapp:${BUILDTAG}
@@ -132,6 +129,7 @@ pipeline {
         }
     }
 }
+
 
 
 
