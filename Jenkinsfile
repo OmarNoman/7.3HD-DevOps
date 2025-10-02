@@ -1,19 +1,17 @@
 pipeline {
     agent any
+    environment {
+        BUILDTAG = "${env.BUILD_NUMBER}"
+    }
+        
 
     stages {
         stage('Build') {
             steps {
                 echo 'Build stage'
-                script {
-                    def buildTag = "build-${env.BUILD_NUMBER}"
-
-                    bat """
-                    docker build -t omarnoman/python_login:${buildTag} -t omarnoman/python_login:latest .
-                    """
-                    // Store the tag for later stages
-                    env.IMAGE_TAG = buildTag
-                }
+                bat """
+                docker build -t omarnoman/python_login:${BUILDTAG} -t omarnoman/python_login:latest .
+                 """
             }
         }
 
@@ -83,21 +81,27 @@ pipeline {
                echo "Building and pushing image to Docker Hub..."
 
                 // Build production image
-                bat 'docker build -t python_login:prod .'
+                bat "docker build -t omarnoman/python_login:${BUILDTAG} -t omarnoman/python_login:latest ."
 
-                // Tag the image with your Docker Hub repo
-                bat 'docker tag python_login:prod omarnoman/python_login:latest'
-
-                // Login to Docker Hub using Jenkins credentials
                 withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_TOKEN')]) {
                     bat 'docker login -u omarnoman -p %DOCKER_TOKEN%'
-                }
+                }   
 
-                // Push image to Docker Hub
-                bat 'docker push omarnoman/python_login:latest'
+                // Push tags
+                bat "docker push omarnoman/python_login:${BUILDTAG}"
+                bat "docker push omarnoman/python_login:latest"
 
-                echo "Image successfully pushed to Docker Hub!"
-                
+                echo "Image pushed to Docker Hub"
+
+                // Run a new production container
+                bat """
+                docker run -d --name python_loging-prod ^
+                    -e ENV=production ^
+                    -p 80:5000
+                    omarnoman/python_login:${BUILDTAG}
+                """
+
+                bat "docker ps -a"
             }
         }
 
@@ -128,6 +132,7 @@ pipeline {
         }
     }
 }
+
 
 
 
