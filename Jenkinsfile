@@ -18,7 +18,8 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm -v %CD%:/app omarnoman/python_login_webapp:latest pytest --cov=python_login_webapp --cov-report=term-missing --cov-report=xml:coverage.xml'
+                //bat 'docker run --rm -v %CD%:/app omarnoman/python_login_webapp:latest pytest --cov=python_login_webapp --cov-report=term-missing --cov-report=xml:coverage.xml'
+                bat 'docker run --rm -v %CD%:/app omarnoman/python_login_webapp:latest pytest --cov=python_login_webapp --cov-report=term-missing --cov-report=xml:/app/coverage.xml --cov-config=.coveragerc'
 
             }
         }
@@ -139,6 +140,7 @@ pipeline {
         }
     }
 }
+
 
 
 
