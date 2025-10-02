@@ -1,7 +1,7 @@
 import pytest
 import os
 import sqlite3
-from app import app, DB_FILE
+from python_login_webapp import app, DB_FILE
 
 # -------------------------------
 # Setup test database
