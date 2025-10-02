@@ -56,7 +56,7 @@ def test_register_login_logout(test_client):
 
     # Login
     response = test_client.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
-    assert b"dashboard" in response.data or assert response.status_code == 200
+    assert b"dashboard" in response.data or response.status_code == 200
 
     # Logout
     response = test_client.get("/logout", follow_redirects=True)
