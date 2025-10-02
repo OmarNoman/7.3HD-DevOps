@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./python_login_webapp")  # add app folder to path
+
 import os
 import pytest
 from python_login_webapp.app import app, init_db
