@@ -50,18 +50,18 @@ pipeline {
 
                 // Remove any existing container
                 bat """
-                docker stop myapp-test || echo "No running test container"
-                docker rm myapp-test || echo "No container to remove"
+                docker stop python_login-test || echo "No running test container"
+                docker rm python_login-test || echo "No container to remove"
                 """
                 
                 // Run the container
                 bat """
-                docker run -d --name myapp-test ^
+                docker run -d --name python_login-test ^
                     -e CI=true ^
                     -e USERNAME=test ^
                     -e PASSWORD=123 ^
                     -p 5000:5000 ^
-                omarnoman/myapp:latest
+                omarnoman/python_login:latest
                 """
 
                 bat"""
@@ -121,6 +121,7 @@ pipeline {
         }
     }
 }
+
 
 
 
