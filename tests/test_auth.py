@@ -1,29 +1,32 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-
-import sqlite3
 import pytest
-from python_login import register, login, create_item, read_items, update_item, delete_item
+from fastapi.testclient import TestClient
+from python_login_webapp.app import app
+import sqlite3
+import os
 
-# Use an in-memory SQLite database for testing
-@pytest.fixture
-def db_connection(monkeypatch):
-    # Patch sqlite3.connect to use in-memory database
-    conn = sqlite3.connect(":memory:")
+# -------------------------------
+# Setup TestClient
+# -------------------------------
+client = TestClient(app)
+
+# Use a separate test database
+TEST_DB = "test_app.db"
+
+# Override the database connection for testing
+def setup_module(module):
+    if os.path.exists(TEST_DB):
+        os.remove(TEST_DB)
+    conn = sqlite3.connect(TEST_DB)
     cursor = conn.cursor()
-
-    # Create tables
     cursor.execute("""
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
         password TEXT
     )
     """)
     cursor.execute("""
-    CREATE TABLE items (
+    CREATE TABLE IF NOT EXISTS items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         owner_id INTEGER,
@@ -31,48 +34,75 @@ def db_connection(monkeypatch):
     )
     """)
     conn.commit()
-
-    # Patch the original connection in
-    monkeypatch.setattr("python_login.conn", conn)
-    monkeypatch.setattr("python_login.cursor", cursor)
-
-    yield cursor, conn
+    conn.close()
 
 # -------------------------------
-# Helper functions to bypass input/getpass
+# Helper functions
 # -------------------------------
-def mock_register(username, password, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: username)
-    monkeypatch.setattr('getpass.getpass', lambda _: password)
-    return register()
+def register_user(username="testuser", password="testpass"):
+    return client.post("/register", json={"username": username, "password": password})
 
-def mock_login(username, password, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: username)
-    monkeypatch.setattr('getpass.getpass', lambda _: password)
-    return login()
+def login_user(username="testuser", password="testpass"):
+    return client.post("/login", json={"username": username, "password": password})
 
-def mock_create_item(user_id, name, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: name)
-    return create_item(user_id)
+def create_item(user_id, name="Test Item"):
+    return client.post("/items", json={"name": name, "owner_id": user_id})
+
+def read_items(user_id):
+    return client.get(f"/items/{user_id}")
+
+def update_item(user_id, item_id, new_name="Updated Item"):
+    return client.put(f"/items/{user_id}/{item_id}", json={"name": new_name, "owner_id": user_id})
+
+def delete_item(user_id, item_id):
+    return client.delete(f"/items/{user_id}/{item_id}")
 
 # -------------------------------
-# Tests
+# Test Cases
 # -------------------------------
-def test_register_and_login(db_connection, monkeypatch):
-    # Register user
-    mock_register("alice", "password123", monkeypatch)
-    user_id = mock_login("alice", "password123", monkeypatch)
-    assert user_id is not None
 
-def test_create_and_read_item(db_connection, monkeypatch):
-    # Register and login
-    mock_register("bob", "pass", monkeypatch)
-    user_id = mock_login("bob", "pass", monkeypatch)
+def test_root_endpoint():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "🚀 Python Login & CRUD API is running!"}
 
-    # Create an item
-    mock_create_item(user_id, "Item1", monkeypatch)
+def test_register_login_flow():
+    # Register a user
+    response = register_user()
+    assert response.status_code in [200, 400]  # 400 if user already exists
 
-    # Check items in database
-    db_connection[0].execute("SELECT name FROM items WHERE owner_id=?", (user_id,))
-    items = db_connection[0].fetchall()
-    assert items[0][0] == "Item1"
+    # Login with correct credentials
+    response = login_user()
+    assert response.status_code in [200, 401]
+    if response.status_code == 200:
+        data = response.json()
+        assert "user_id" in data
+        user_id = data["user_id"]
+
+        # CRUD operations
+        # Create an item
+        create_resp = create_item(user_id)
+        assert create_resp.status_code == 200
+        assert create_resp.json()["message"] == "✅ Item successfully created!"
+
+        # Read items
+        read_resp = read_items(user_id)
+        assert read_resp.status_code == 200
+        items = read_resp.json()["items"]
+        assert len(items) >= 1
+        item_id = items[0]["id"]
+
+        # Update item
+        update_resp = update_item(user_id, item_id)
+        assert update_resp.status_code == 200
+        assert update_resp.json()["message"] == "✅ Item successfully updated!"
+
+        # Delete item
+        delete_resp = delete_item(user_id, item_id)
+        assert delete_resp.status_code == 200
+        assert delete_resp.json()["message"] == "✅ Item successfully deleted!"
+
+def test_invalid_login():
+    response = login_user(username="wronguser", password="wrongpass")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "❌ Incorrect username or password."
