@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Needed for session management
 
-DB_FILE = "app.db"
+DB_FILE = os.environ.get("DB_FILE", "app.db")
 
 # -------------------------------
 # Database setup
