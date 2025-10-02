@@ -95,10 +95,7 @@ pipeline {
 
                 // Run a new production container
                 bat """
-                docker run -d --name python_loging-prod ^
-                    -e ENV=production ^
-                    -p 80:5000
-                    omarnoman/python_login:${BUILDTAG}
+                docker run -d --name python_login-prod -e ENV=production -p 80:5000 omarnoman/python_login:${BUILDTAG}
                 """
 
                 bat "docker ps -a"
@@ -132,6 +129,7 @@ pipeline {
         }
     }
 }
+
 
 
 
