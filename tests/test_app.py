@@ -1,7 +1,9 @@
+import sys
+sys.path.append("/app/python_login_webapp")
 import pytest
 import os
 import sqlite3
-from python_login_webapp import app, DB_FILE
+from app import app, DB_FILE
 
 # -------------------------------
 # Setup test database
