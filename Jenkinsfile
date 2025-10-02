@@ -5,7 +5,15 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Build stage'
-                bat 'docker build -t python_login:latest .'
+                script {
+                    def buildTag = "build-${env.BUILD_NUMBER}"
+
+                    bat """
+                    docker build -t omarnoman/python_login:${buildTag} -t omarnoman/python_login:latest .
+                    """
+                    // Store the tag for later stages
+                    env.IMAGE_TAG = buildTag
+                }
             }
         }
 
@@ -120,6 +128,7 @@ pipeline {
         }
     }
 }
+
 
 
 
