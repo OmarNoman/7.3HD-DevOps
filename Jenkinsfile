@@ -18,7 +18,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm python_login_webapp:latest pytest -v'
+                bat 'docker run --rm omarnoman/python_login_webapp:latest pytest -v'
             }
         }
 
@@ -132,6 +132,7 @@ pipeline {
         }
     }
 }
+
 
 
 
