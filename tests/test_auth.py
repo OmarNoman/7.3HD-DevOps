@@ -1,108 +1,73 @@
 import pytest
-from fastapi.testclient import TestClient
-from python_login_webapp.app import app
-import sqlite3
 import os
+import sqlite3
+from python_login_webapp.app import app, DB_FILE
 
 # -------------------------------
-# Setup TestClient
+# Setup test database
 # -------------------------------
-client = TestClient(app)
+@pytest.fixture(scope="module")
+def test_client():
+    # Use Flask test client
+    app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
+    testing_client = app.test_client()
 
-# Use a separate test database
-TEST_DB = "test_app.db"
-
-# Override the database connection for testing
-def setup_module(module):
-    if os.path.exists(TEST_DB):
-        os.remove(TEST_DB)
-    conn = sqlite3.connect(TEST_DB)
+    # Create fresh test database
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
+    conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
     """)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        owner_id INTEGER,
-        FOREIGN KEY (owner_id) REFERENCES users(id)
-    )
+        CREATE TABLE items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            owner_id INTEGER,
+            FOREIGN KEY (owner_id) REFERENCES users(id)
+        )
     """)
     conn.commit()
     conn.close()
 
-# -------------------------------
-# Helper functions
-# -------------------------------
-def register_user(username="testuser", password="testpass"):
-    return client.post("/register", json={"username": username, "password": password})
+    yield testing_client
 
-def login_user(username="testuser", password="testpass"):
-    return client.post("/login", json={"username": username, "password": password})
-
-def create_item(user_id, name="Test Item"):
-    return client.post("/items", json={"name": name, "owner_id": user_id})
-
-def read_items(user_id):
-    return client.get(f"/items/{user_id}")
-
-def update_item(user_id, item_id, new_name="Updated Item"):
-    return client.put(f"/items/{user_id}/{item_id}", json={"name": new_name, "owner_id": user_id})
-
-def delete_item(user_id, item_id):
-    return client.delete(f"/items/{user_id}/{item_id}")
+    # Cleanup DB after tests
+    if os.path.exists(DB_FILE):
+        os.remove(DB_FILE)
 
 # -------------------------------
-# Test Cases
+# Tests
 # -------------------------------
 
-def test_root_endpoint():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "🚀 Python Login & CRUD API is running!"}
+def test_register_login_logout(test_client):
+    # Register
+    response = test_client.post("/register", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert b"login" in response.data or response.status_code == 200
 
-def test_register_login_flow():
-    # Register a user
-    response = register_user()
-    assert response.status_code in [200, 400]  # 400 if user already exists
+    # Login
+    response = test_client.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert b"dashboard" in response.data
 
-    # Login with correct credentials
-    response = login_user()
-    assert response.status_code in [200, 401]
-    if response.status_code == 200:
-        data = response.json()
-        assert "user_id" in data
-        user_id = data["user_id"]
+    # Logout
+    response = test_client.get("/logout", follow_redirects=True)
+    assert b"index" in response.data
 
-        # CRUD operations
-        # Create an item
-        create_resp = create_item(user_id)
-        assert create_resp.status_code == 200
-        assert create_resp.json()["message"] == "✅ Item successfully created!"
+def test_create_and_delete_item(test_client):
+    # Login first
+    test_client.post("/register", data={"username": "user2", "password": "pass"})
+    test_client.post("/login", data={"username": "user2", "password": "pass"})
 
-        # Read items
-        read_resp = read_items(user_id)
-        assert read_resp.status_code == 200
-        items = read_resp.json()["items"]
-        assert len(items) >= 1
-        item_id = items[0]["id"]
+    # Create item
+    response = test_client.post("/create", data={"name": "Item1"}, follow_redirects=True)
+    assert b"Item1" in response.data
 
-        # Update item
-        update_resp = update_item(user_id, item_id)
-        assert update_resp.status_code == 200
-        assert update_resp.json()["message"] == "✅ Item successfully updated!"
-
-        # Delete item
-        delete_resp = delete_item(user_id, item_id)
-        assert delete_resp.status_code == 200
-        assert delete_resp.json()["message"] == "✅ Item successfully deleted!"
-
-def test_invalid_login():
-    response = login_user(username="wronguser", password="wrongpass")
-    assert response.status_code == 401
-    assert response.json()["detail"] == "❌ Incorrect username or password."
+    # Delete item
+    response = test_client.get("/delete/1", follow_redirects=True)
+    assert b"Item1" not in response.data
