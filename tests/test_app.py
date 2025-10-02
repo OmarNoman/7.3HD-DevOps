@@ -2,6 +2,7 @@ import sys
 sys.path.append("/app/python_login_webapp")
 import pytest
 import os
+os.environ["DB_FILE"] = ":memory:"
 import sqlite3
 from app import app, DB_FILE
 
