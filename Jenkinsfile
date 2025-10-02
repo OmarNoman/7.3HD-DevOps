@@ -32,7 +32,7 @@ pipeline {
                         withSonarQubeEnv('SonarQube-Local') {
                             bat """
                                 ${scannerHome}\\bin\\sonar-scanner.bat ^
-                                -Dsonar.projectKey=python_login ^
+                                -Dsonar.projectKey=python_login_webapp ^
                                 -Dsonar.sources=python_login_webapp ^
                                 -Dsonar.tests=tests ^
                                 -Dsonar.python.version=3.11 ^
@@ -139,6 +139,7 @@ pipeline {
         }
     }
 }
+
 
 
 
