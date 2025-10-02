@@ -97,11 +97,7 @@ def logout():
     return redirect(url_for("index"))
 
 if __name__ == "__main__":
-    import os
-    env = os.environ.get("ENV", "development")
-    
-    if env == "production":
-        app.run(host="0.0.0.0", port=5000, debug=False)
-    else:
-        app.run(host="0.0.0.0", port=5000, debug=True)
+    is_production = os.environ.get("ENV") == "production"
+    app.run(host="0.0.0.0", port=5000, debug=not is_production)
+
 
