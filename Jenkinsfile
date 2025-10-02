@@ -95,8 +95,8 @@ pipeline {
 
                 // Run a new production container
                 bat """
-                docker stop myapp-prod || echo "No running production container"
-                docker rm myapp-prod || echo "No old container to remove"
+                docker stop python_login-prod || echo "No running production container"
+                docker rm python_login-prod || echo "No old container to remove"
                 """
                 
                 bat """
@@ -134,6 +134,7 @@ pipeline {
         }
     }
 }
+
 
 
 
