@@ -52,7 +52,7 @@ def test_create_and_delete_item(test_client):
     assert b"Item1" in rv.data
 
     # Fetch item ID from DB
-    from python_login_webapp.app import get_db_connection
+    from app import get_db_connection
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM items WHERE name=?", ("Item1",))
