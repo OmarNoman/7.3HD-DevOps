@@ -56,10 +56,12 @@ def test_register_login_logout(test_client):
 
     # Login
     response = test_client.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert response.status_code == 200
     assert b"dashboard" in response.data
 
     # Logout
     response = test_client.get("/logout", follow_redirects=True)
+    assert response.status_code == 200
     assert b"index" in response.data
 
 def test_create_and_delete_item(test_client):
