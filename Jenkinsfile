@@ -95,6 +95,11 @@ pipeline {
 
                 // Run a new production container
                 bat """
+                docker stop myapp-prod || echo "No running production container"
+                docker rm myapp-prod || echo "No old container to remove"
+                """
+                
+                bat """
                 docker run -d --name python_login-prod -e ENV=production -p 80:5000 omarnoman/python_login:${BUILDTAG}
                 """
 
@@ -129,6 +134,7 @@ pipeline {
         }
     }
 }
+
 
 
 
