@@ -98,7 +98,10 @@ def logout():
 
 if __name__ == "__main__":
     import os
-    if os.environ.get("ENV") == "production":
+    env = os.environ.get("ENV", "development")
+    
+    if env == "production":
         app.run(host="0.0.0.0", port=5000, debug=False)
     else:
         app.run(host="0.0.0.0", port=5000, debug=True)
+
