@@ -30,15 +30,21 @@ pipeline {
                     def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
                         withSonarQubeEnv('SonarQube-Local') {
-                            bat "${scannerHome}\\bin\\sonar-scanner.bat " +
-                                "-Dsonar.projectKey=python_login_webapp " +
-                                "-Dsonar.sources=. " +
-                                "-Dsonar.login=%SONAR_TOKEN%"
+                            bat """
+                                ${scannerHome}\\bin\\sonar-scanner.bat ^
+                                -Dsonar.projectKey=python_login ^
+                                -Dsonar.sources=python_login_webapp ^
+                                -Dsonar.tests=tests ^
+                                -Dsonar.python.version=3.11 ^
+                                -Dsonar.python.coverage.reportPaths=coverage.xml ^
+                                -Dsonar.token=%SONAR_TOKEN%
+                            """
+                        }      
                     }
                 }
             }
         }
-    }
+
 
         stage('Security') {
             steps {
@@ -133,6 +139,7 @@ pipeline {
         }
     }
 }
+
 
 
 
