@@ -6,13 +6,14 @@ COPY . /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+#Expose the port Flask will run on
+EXPOSE 5000
 
-# Default env vars for CI/CD
-ENV CI=true
-ENV USERNAME=test
-ENV PASSWORD=123
+# Set environment variables for Flask
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
 
-COPY . .
+# Run the app
+CMD ["flask", "run"]
 
-# Run the program
-CMD ["python", "python_login.py"]
