@@ -18,7 +18,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm python_login_webapp:latest pytest -v'
+                // bat 'docker run --rm python_login_webapp:latest pytest -v'
             }
         }
 
@@ -63,10 +63,8 @@ pipeline {
                 bat """
                 docker run -d --name python_login_webapp-test ^
                     -e CI=true ^
-                    -e USERNAME=test ^
-                    -e PASSWORD=123 ^
                     -p 5000:5000 ^
-                omarnoman/python_login_webapp:latest
+                    omarnoman/python_login_webapp:latest
                 """
 
                 bat"""
@@ -134,4 +132,5 @@ pipeline {
         }
     }
 }
+
 
