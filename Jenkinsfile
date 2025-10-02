@@ -33,7 +33,7 @@ pipeline {
                             bat """
                                 ${scannerHome}\\bin\\sonar-scanner.bat ^
                                 -Dsonar.projectKey=python_login_webapp ^
-                                -Dsonar.sources=. ^
+                                -Dsonar.sources=python_login_webpp ^
                                 -Dsonar.tests=tests ^
                                 -Dsonar.python.version=3.11 ^
                                 -Dsonar.python.coverage.reportPaths=coverage.xml ^
@@ -139,6 +139,7 @@ pipeline {
         }
     }
 }
+
 
 
 
