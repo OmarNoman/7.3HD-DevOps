@@ -51,9 +51,18 @@ def test_create_and_delete_item(test_client):
     rv = test_client.post("/create", data={"name": "Item1"}, follow_redirects=True)
     assert b"Item1" in rv.data
 
-    # Delete item
-    rv = test_client.get("/delete/1", follow_redirects=True)
+    # Fetch item ID from DB
+    from python_login_webapp.app import get_db_connection
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM items WHERE name=?", ("Item1",))
+    item_id = cursor.fetchone()["id"]
+    conn.close()
+
+    # Delete item dynamically
+    rv = test_client.get(f"/delete/{item_id}", follow_redirects=True)
     assert b"Item1" not in rv.data
+
 
 def test_dashboard_requires_login(test_client):
     rv = test_client.get("/dashboard", follow_redirects=True)
