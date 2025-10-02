@@ -49,6 +49,8 @@ pipeline {
                 """
 
                 // Remove any existing container
+                bat 'docker stop python_login-test || echo No existing python_login container running'
+                bat 'docker rm -f python_login-test || echo No existing python_login container to remove'
                 
                 
                 // Run the container
@@ -118,6 +120,7 @@ pipeline {
         }
     }
 }
+
 
 
 
