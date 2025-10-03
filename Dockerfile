@@ -1,18 +1,24 @@
+# Using python 3.11 for image
 FROM python:3.11-slim
 
+# Sets up the working directory
 WORKDIR /app
-COPY . /app
 
+# Copies the requirements file and instals the dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copies the rest of the app into the contianer
+COPY . /app
 
-# Default env vars for CI/CD
-ENV CI=true
-ENV USERNAME=test
-ENV PASSWORD=123
+# Exposes the port for the app to run on
+EXPOSE 5000
 
-COPY . .
+# Sets the environment variables
+ENV FLASK_APP=python_login_webapp/app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
+ENV ENV=production
 
-# Run the program
-CMD ["python", "python_login.py"]
+# Runs the flask program
+CMD ["flask", "run"]
