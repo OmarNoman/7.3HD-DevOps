@@ -6,28 +6,28 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 # Default DB path (can be overridden)
-DB_PATH = os.environ.get("DB_FILE", "python_login_webapp/app.db")
+databasePath = os.environ.get("DB_FILE", "python_login_webapp/app.db")
 
 
-def connect_db():
+def connectDatabase():
     """Create a new database connection."""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(databasePath, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def setup_db():
+def setupDatabase():
     """Create tables if they don’t exist."""
-    conn = connect_db()
-    cur = conn.cursor()
-    cur.execute("""
+    conn = connectDatabase()
+    cursor = conn.cursor()
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             password TEXT
         )
     """)
-    cur.execute("""
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
@@ -40,7 +40,7 @@ def setup_db():
 
 
 # Run once on startup
-setup_db()
+setupDatabase()
 
 
 # ---------------- Routes ----------------
@@ -56,7 +56,7 @@ def register():
         password = request.form["password"]
 
         try:
-            conn = connect_db()
+            conn = connectDatabase()
             conn.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
                 (username, password),
@@ -75,13 +75,13 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = connect_db()
-        cur = conn.cursor()
-        cur.execute(
+        conn = connectDatabase()
+        cursor = conn.cursor()
+        cursor.execute(
             "SELECT id FROM users WHERE username=? AND password=?",
             (username, password),
         )
-        user = cur.fetchone()
+        user = cursor.fetchone()
         conn.close()
 
         if user:
@@ -96,10 +96,10 @@ def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    conn = connect_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id, name FROM items WHERE owner_id=?", (session["user_id"],))
-    items = cur.fetchall()
+    conn = connectDatabase()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM items WHERE owner_id=?", (session["user_id"],))
+    items = cursor.fetchall()
     conn.close()
     return render_template("dashboard.html", items=items)
 
@@ -107,7 +107,7 @@ def dashboard():
 @app.route("/create", methods=["POST"])
 def create():
     if "user_id" in session:
-        conn = connect_db()
+        conn = connectDatabase()
         conn.execute(
             "INSERT INTO items (name, owner_id) VALUES (?, ?)",
             (request.form["name"], session["user_id"]),
@@ -120,7 +120,7 @@ def create():
 @app.route("/delete/<int:item_id>")
 def delete(item_id):
     if "user_id" in session:
-        conn = connect_db()
+        conn = connectDatabase()
         conn.execute(
             "DELETE FROM items WHERE id=? AND owner_id=?",
             (item_id, session["user_id"]),
@@ -137,5 +137,5 @@ def logout():
 
 
 if __name__ == "__main__":
-    prod = os.environ.get("ENV") == "production"
-    app.run(host="0.0.0.0", port=5000, debug=not prod)
+    production = os.environ.get("ENV") == "production"
+    app.run(host="0.0.0.0", port=5000, debug=not production)
