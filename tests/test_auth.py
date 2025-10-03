@@ -1,78 +1,69 @@
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-
-import sqlite3
+import sys
 import pytest
-from python_login import register, login, create_item, read_items, update_item, delete_item
 
-# Use an in-memory SQLite database for testing
-@pytest.fixture
-def db_connection(monkeypatch):
-    # Patch sqlite3.connect to use in-memory database
-    conn = sqlite3.connect(":memory:")
+# Adding app to the folder path
+sys.path.append("./python_login_webapp")
+
+from app import app, setupdatabase, connectdatabase
+
+# Making use of in memory database for testing
+os.environ["DB_FILE"] = ":memory:"
+
+
+@pytest.fixture(scope="function")
+def testClient():
+    """Flask test testClient with fresh in-memory DB."""
+    app.config["TESTING"] = True
+    setupdatabase()  # Recreates the tables for each test
+
+    with app.test_client() as c:
+        yield c
+
+
+# Tests 
+def test_index_page(testClient):
+    response = testClient.get("/")
+    assert response.status_code == 200
+    assert b"Register" in response.data or b"Login" in response.data
+
+
+def test_register_login_logout(testClient):
+    # First registers the user
+    response = testClient.post("/register", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert response.status_code == 200
+
+    # Logs in the test user
+    response = testClient.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert b"Your Items" in response.data
+
+    # Logs out the test user
+    response = testClient.get("/logout", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Register" in response.data or b"Login" in response.data
+
+
+def test_create_and_delete_item(testClient):
+    # Registering and logining in the test user
+    testClient.post("/register", data={"username": "user2", "password": "pass"})
+    testClient.post("/login", data={"username": "user2", "password": "pass"})
+
+    # Creates an item to test
+    response = testClient.post("/create", data={"name": "Item1"}, follow_redirects=True)
+    assert b"Item1" in response.data
+
+    # Grabs the item id from the database
+    conn = connectdatabase()
     cursor = conn.cursor()
+    cursor.execute("SELECT id FROM items WHERE name=?", ("Item1",))
+    itemID = cursor.fetchone()["id"]
+    conn.close()
 
-    # Create tables
-    cursor.execute("""
-    CREATE TABLE users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )
-    """)
-    cursor.execute("""
-    CREATE TABLE items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        owner_id INTEGER,
-        FOREIGN KEY (owner_id) REFERENCES users(id)
-    )
-    """)
-    conn.commit()
+    # Deletes the item from the database
+    response = testClient.get(f"/delete/{itemID}", follow_redirects=True)
+    assert b"Item1" not in response.data
 
-    # Patch the original connection in
-    monkeypatch.setattr("python_login.conn", conn)
-    monkeypatch.setattr("python_login.cursor", cursor)
 
-    yield cursor, conn
-
-# -------------------------------
-# Helper functions to bypass input/getpass
-# -------------------------------
-def mock_register(username, password, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: username)
-    monkeypatch.setattr('getpass.getpass', lambda _: password)
-    return register()
-
-def mock_login(username, password, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: username)
-    monkeypatch.setattr('getpass.getpass', lambda _: password)
-    return login()
-
-def mock_create_item(user_id, name, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: name)
-    return create_item(user_id)
-
-# -------------------------------
-# Tests
-# -------------------------------
-def test_register_and_login(db_connection, monkeypatch):
-    # Register user
-    mock_register("alice", "password123", monkeypatch)
-    user_id = mock_login("alice", "password123", monkeypatch)
-    assert user_id is not None
-
-def test_create_and_read_item(db_connection, monkeypatch):
-    # Register and login
-    mock_register("bob", "pass", monkeypatch)
-    user_id = mock_login("bob", "pass", monkeypatch)
-
-    # Create an item
-    mock_create_item(user_id, "Item1", monkeypatch)
-
-    # Check items in database
-    db_connection[0].execute("SELECT name FROM items WHERE owner_id=?", (user_id,))
-    items = db_connection[0].fetchall()
-    assert items[0][0] == "Item1"
+def test_dashboard_requires_login(testClient):
+    response = testClient.get("/dashboard", follow_redirects=True)
+    assert b"Login" in response.data
