@@ -5,7 +5,7 @@ import pytest
 # Add app folder to path
 sys.path.append("./python_login_webapp")
 
-from app import app, setup_db, connect_db
+from app import app, setupDatabase, connectDatabase
 
 # Use in-memory database for testing
 os.environ["DB_FILE"] = ":memory:"
@@ -15,7 +15,7 @@ os.environ["DB_FILE"] = ":memory:"
 def testClient():
     """Flask test testClient with fresh in-memory DB."""
     app.config["TESTING"] = True
-    setup_db()  # Recreate tables for each test
+    setupDatabase()  # Recreate tables for each test
 
     with app.test_client() as c:
         yield c
@@ -53,7 +53,7 @@ def test_create_and_delete_item(testClient):
     assert b"Item1" in response.data
 
     # Grab item id directly from DB
-    conn = connect_db()
+    conn = connectDatabase()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM items WHERE name=?", ("Item1",))
     itemID = cursor.fetchone()["id"]
