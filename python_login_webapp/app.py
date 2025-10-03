@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# Default DB path (can be overridden)
+# Path towards app
 databasePath = os.environ.get("DB_FILE", "python_login_webapp/app.db")
 
 
@@ -39,11 +39,11 @@ def setupDatabase():
     conn.close()
 
 
-# Run once on startup
+# Sets up database on start up
 setupDatabase()
 
 
-# ---------------- Routes ----------------
+# Routes 
 @app.route("/")
 def index():
     return render_template("index.html")
