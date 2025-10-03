@@ -9,14 +9,14 @@ app.secret_key = "supersecretkey"
 databasePath = os.environ.get("DB_FILE", "python_login_webapp/app.db")
 
 
-def connectDatabase():
+def connectdatabase():
     """Create a new database connection."""
     conn = sqlite3.connect(databasePath, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def setupDatabase():
+def setupdatabase():
     """Create tables if they don’t exist."""
     conn = connectDatabase()
     cursor = conn.cursor()
