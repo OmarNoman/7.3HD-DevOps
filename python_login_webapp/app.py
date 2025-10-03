@@ -18,7 +18,7 @@ def connectdatabase():
 
 def setupdatabase():
     """Create tables if they don’t exist."""
-    conn = connectDatabase()
+    conn = connectdatabase()
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -40,7 +40,7 @@ def setupdatabase():
 
 
 # Sets up database on start up
-setupDatabase()
+setupdatabase()
 
 
 # Routes 
@@ -56,7 +56,7 @@ def register():
         password = request.form["password"]
 
         try:
-            conn = connectDatabase()
+            conn = connectdatabase()
             conn.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
                 (username, password),
@@ -75,7 +75,7 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = connectDatabase()
+        conn = connectdatabase()
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id FROM users WHERE username=? AND password=?",
@@ -96,7 +96,7 @@ def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    conn = connectDatabase()
+    conn = connectdatabase()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name FROM items WHERE owner_id=?", (session["user_id"],))
     items = cursor.fetchall()
@@ -107,7 +107,7 @@ def dashboard():
 @app.route("/create", methods=["POST"])
 def create():
     if "user_id" in session:
-        conn = connectDatabase()
+        conn = connectdatabase()
         conn.execute(
             "INSERT INTO items (name, owner_id) VALUES (?, ?)",
             (request.form["name"], session["user_id"]),
@@ -120,7 +120,7 @@ def create():
 @app.route("/delete/<int:item_id>")
 def delete(item_id):
     if "user_id" in session:
-        conn = connectDatabase()
+        conn = connectdatabase()
         conn.execute(
             "DELETE FROM items WHERE id=? AND owner_id=?",
             (item_id, session["user_id"]),
