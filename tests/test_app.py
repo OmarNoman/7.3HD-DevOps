@@ -1,69 +1,69 @@
-import sys
-sys.path.append("./python_login_webapp")  # add app folder to path
-
 import os
+import sys
 import pytest
-from app import app, init_db
+
+# Add app folder to path
+sys.path.append("./python_login_webapp")
+
+from app import app, setup_db, connect_db
 
 # Use in-memory database for testing
 os.environ["DB_FILE"] = ":memory:"
 
-# -------------------------------
-# Test client fixture
-# -------------------------------
+
 @pytest.fixture(scope="function")
-def test_client():
+def client():
+    """Flask test client with fresh in-memory DB."""
     app.config["TESTING"] = True
-    app.config["WTF_CSRF_ENABLED"] = False
-    init_db()  # Create tables in memory
+    setup_db()  # Recreate tables for each test
 
-    with app.test_client() as client:
-        yield client
+    with app.test_client() as c:
+        yield c
 
-# -------------------------------
-# Tests
-# -------------------------------
-def test_index_page(test_client):
-    rv = test_client.get("/")
-    assert rv.status_code == 200
-    assert b"Register" in rv.data or b"Login" in rv.data
 
-def test_register_login_logout(test_client):
-    # Register
-    rv = test_client.post("/register", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
-    assert rv.status_code == 200
+# ---------------- Tests ----------------
+def test_index_page(client):
+    res = client.get("/")
+    assert res.status_code == 200
+    assert b"Register" in res.data or b"Login" in res.data
+
+
+def test_register_login_logout(client):
+    # Register user
+    res = client.post("/register", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert res.status_code == 200
 
     # Login
-    rv = test_client.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
-    assert b"Your Items" in rv.data  # Dashboard content
+    res = client.post("/login", data={"username": "testuser", "password": "pass"}, follow_redirects=True)
+    assert b"Your Items" in res.data
 
     # Logout
-    rv = test_client.get("/logout", follow_redirects=True)
-    assert rv.status_code == 200
-    assert b"Register" in rv.data or b"Login" in rv.data
+    res = client.get("/logout", follow_redirects=True)
+    assert res.status_code == 200
+    assert b"Register" in res.data or b"Login" in res.data
 
-def test_create_and_delete_item(test_client):
+
+def test_create_and_delete_item(client):
     # Register & login
-    test_client.post("/register", data={"username": "user2", "password": "pass"})
-    test_client.post("/login", data={"username": "user2", "password": "pass"})
+    client.post("/register", data={"username": "user2", "password": "pass"})
+    client.post("/login", data={"username": "user2", "password": "pass"})
 
-    # Create item
-    rv = test_client.post("/create", data={"name": "Item1"}, follow_redirects=True)
-    assert b"Item1" in rv.data
+    # Create an item
+    res = client.post("/create", data={"name": "Item1"}, follow_redirects=True)
+    assert b"Item1" in res.data
 
-    # Fetch item ID from DB
-    from app import get_db_connection
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM items WHERE name=?", ("Item1",))
-    item_id = cursor.fetchone()["id"]
+    # Grab item id directly from DB
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM items WHERE name=?", ("Item1",))
+    item_id = cur.fetchone()["id"]
     conn.close()
 
-    # Delete item dynamically
-    rv = test_client.get(f"/delete/{item_id}", follow_redirects=True)
-    assert b"Item1" not in rv.data
+    # Delete the item
+    res = client.get(f"/delete/{item_id}", follow_redirects=True)
+    assert b"Item1" not in res.data
 
 
-def test_dashboard_requires_login(test_client):
-    rv = test_client.get("/dashboard", follow_redirects=True)
-    assert b"Login" in rv.data
+def test_dashboard_requires_login(client):
+    res = client.get("/dashboard", follow_redirects=True)
+    assert b"Login" in res.data
