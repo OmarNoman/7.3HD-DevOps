@@ -50,7 +50,7 @@ pipeline {
         stage('Security') {
             steps {
                 echo 'Security stage '
-                bat 'docker run --rm -e ENV=production -v %CD%:/app omarnoman/python_login_webapp:latest bandit -r /app -lll -x /app/venv'
+                bat 'docker run --rm -e ENV=production -v %CD%:/app omarnoman/python_login_webapp:latest bandit -r /app -lll'
             }
         }
 
@@ -140,6 +140,7 @@ pipeline {
         }
     }
 }
+
 
 
 
