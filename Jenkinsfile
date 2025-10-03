@@ -4,13 +4,13 @@ pipeline {
         BUILDTAG = "${env.BUILD_NUMBER}"
     }
         
-
     stages {
         stage('Build') {
             steps {
                 echo 'Build stage'
+                // Builds an image with the build tag of the current job and the latest tag
                 bat """
-                docker build -t omarnoman/python_login:${BUILDTAG} -t omarnoman/python_login:latest .
+                docker build -t omarnoman/python_login_webapp_webapp:${BUILDTAG} -t omarnoman/python_login_webapp:latest .
                  """
             }
         }
@@ -18,57 +18,66 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Test stage'
-                bat 'docker run --rm python_login:latest pytest -v'
+                // Runs test using pytest as well as creating the coverage.xml file
+                bat 'docker run --rm -v %CD%:/app omarnoman/python_login_webapp:latest pytest --cov=python_login_webapp --cov-report=term-missing --cov-report=xml:/app/coverage.xml --cov-config=.coveragerc'
+
             }
         }
 
         stage('Code Quality') {
             steps {
                 echo 'Code Quality stage'
+                // Connects and runs to sonarqube to test code quality
                 script {
                     def scannerHome = tool name: 'SonarScanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
                     withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
                         withSonarQubeEnv('SonarQube-Local') {
-                            bat "${scannerHome}\\bin\\sonar-scanner.bat " +
-                                "-Dsonar.projectKey=python_login " +
-                                "-Dsonar.sources=. " +
-                                "-Dsonar.login=%SONAR_TOKEN%"
+                            bat """
+                                ${scannerHome}\\bin\\sonar-scanner.bat ^
+                                -Dsonar.projectKey=python_login_webapp ^
+                                -Dsonar.sources=python_login_webapp ^
+                                -Dsonar.tests=tests ^
+                                -Dsonar.python.version=3.11 ^
+                                -Dsonar.python.coverage.reportPaths=coverage.xml ^
+                                -Dsonar.token=%SONAR_TOKEN%
+                            """
+                        }      
                     }
                 }
             }
         }
-    }
 
         stage('Security') {
             steps {
                 echo 'Security stage '
-                bat 'docker run --rm -v %CD%:/app python_login:latest bandit -r /app -lll -x /app/venv'
+                // runs bandit to test security quality of program
+                bat 'docker run --rm -e ENV=production -v %CD%:/app omarnoman/python_login_webapp:latest bandit -r /app -lll'
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Deploy stage'
-
+                // Building a new docker image to be ready for deployment
                 bat"""
-                docker build -t omarnoman/python_login:latest .
+                docker build -t omarnoman/python_login_webapp:latest .
                 """
 
-                // Remove any existing container
-                bat 'docker stop python_login-test || echo No existing python_login container running'
-                bat 'docker rm -f python_login-test || echo No existing python_login container to remove'
-                
-                
-                // Run the container
+                // Firstly stops any running containes thens removes them 
                 bat """
-                docker run -d --name python_login-test ^
+                docker stop python_login_webapp-test || echo "pythong_login_webapp-test is not currently running"
+                docker rm -f python_login_webapp-test || echo "python_login_webapp-prod does not exist"
+                """
+                
+                // Runs the container
+                bat """
+                docker run -d --name python_login_webapp-test ^
                     -e CI=true ^
-                    -e USERNAME=test ^
-                    -e PASSWORD=123 ^
                     -p 5000:5000 ^
-                omarnoman/python_login:latest
+                    omarnoman/python_login_webapp:latest
                 """
 
+                // Waits 5 seconds to ensure container can start up and lists all the currently running containers
                 bat"""
                 timeout /t 5
                 docker ps -a
@@ -80,27 +89,29 @@ pipeline {
             steps {
                echo "Building and pushing image to Docker Hub..."
 
-                // Build production image
-                bat "docker build -t omarnoman/python_login:${BUILDTAG} -t omarnoman/python_login:latest ."
+                // Builds a production ready images with build tag and latest tag
+                bat "docker build -t omarnoman/python_login_webapp:${BUILDTAG} -t omarnoman/python_login_webapp:latest ."
 
+                // Connects to docker hub using credentials withing jenkins 
                 withCredentials([string(credentialsId: 'dockerhub-credentials', variable: 'DOCKER_TOKEN')]) {
                     bat 'docker login -u omarnoman -p %DOCKER_TOKEN%'
                 }   
 
-                // Push tags
-                bat "docker push omarnoman/python_login:${BUILDTAG}"
-                bat "docker push omarnoman/python_login:latest"
+                // Pushes the images into docker hub
+                bat "docker push omarnoman/python_login_webapp:${BUILDTAG}"
+                bat "docker push omarnoman/python_login_webapp:latest"
 
-                echo "Image pushed to Docker Hub"
+                echo "Images succesffuly pushed into docker hub"
 
-                // Run a new production container
+                // Firstly stops any running containes thens removes them 
                 bat """
-                docker stop python_login-prod || echo "No running production container"
-                docker rm python_login-prod || echo "No old container to remove"
+                docker stop python_login_webapp-prod || echo "python_login_webapp-prod is not running"
+                docker rm python_login_webapp-prod || echo "python_login_webapp-prod does not exist"
                 """
-                
+
+                // Creates a new production container
                 bat """
-                docker run -d --name python_login-prod -e ENV=production -p 80:5000 omarnoman/python_login:${BUILDTAG}
+                docker run -d --name python_login_webapp-prod -e ENV=production -p 80:5000 omarnoman/python_login_webapp:${BUILDTAG}
                 """
 
                 bat "docker ps -a"
@@ -110,10 +121,13 @@ pipeline {
         stage('Monitoring') {
             steps {
                 echo 'Monitoring stage'
-                bat 'docker stop dd-agent || echo No existing Datadog container running'
-                bat 'docker rm -f dd-agent || echo No existing Datadog container to remove'
-                
+                // Firstly stops any running containes thens removes them 
+                bat """
+                docker stop dd-agent || echo "datadog is not running"
+                docker rm -f dd-agent || echo "datadog does not exist"
+                """
 
+                // Connects and runs to datadog for metric monitoring
                 withCredentials([string(credentialsId: 'datadog_api', variable: 'API_KEY')]) {
                     
                     bat '''
@@ -134,53 +148,4 @@ pipeline {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
